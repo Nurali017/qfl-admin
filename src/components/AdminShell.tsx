@@ -17,6 +17,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/content/news', label: 'News', roles: ['superadmin', 'editor'] },
   { href: '/content/pages', label: 'Pages', roles: ['superadmin', 'editor'] },
   { href: '/media/files', label: 'Files', roles: ['superadmin', 'editor'] },
+  { href: '/players', label: 'Players', roles: ['superadmin', 'editor'] },
   { href: '/operations/sync', label: 'Sync Ops', roles: ['superadmin', 'operator'] },
   { href: '/operations/live', label: 'Live Ops', roles: ['superadmin', 'operator'] },
   { href: '/users', label: 'Users', roles: ['superadmin'] },
