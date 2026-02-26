@@ -62,7 +62,7 @@ export default function GamesPage() {
       params.set('limit', String(limit));
       params.set('offset', String(page * limit));
 
-      const res = await authFetch(`/admin/games?${params.toString()}`);
+      const res = await authFetch(`/games?${params.toString()}`);
       const data: GamesResponse = await parseJsonOrThrow(res);
       setGames(data.items);
       setTotal(data.total);

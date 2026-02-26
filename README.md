@@ -16,4 +16,4 @@ App runs on `http://localhost:3001`.
 cp .env.example .env.local
 ```
 
-- `NEXT_PUBLIC_ADMIN_API_BASE_URL` defaults to `/admin-api` (proxied to backend).
+- `NEXT_PUBLIC_ADMIN_API_BASE_URL` defaults to `/admin/admin-api` (proxied to backend).

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import type { AdminRole, AdminUser } from '@/lib/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_BASE_URL || '/admin-api';
+const API_BASE = process.env.NEXT_PUBLIC_ADMIN_API_BASE_URL || '/admin/admin-api';
 const TOKEN_KEY = 'qfl_admin_access_token';
 
 type AuthContextValue = {

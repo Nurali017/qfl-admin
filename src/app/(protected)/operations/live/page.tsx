@@ -26,11 +26,11 @@ export default function LiveOperationsPage() {
 
   const fetchGames = useCallback(async () => {
     try {
-      const res = await authFetch('/admin/games?status=upcoming&limit=20');
+      const res = await authFetch('/games?status=upcoming&limit=20');
       const data = await parseJsonOrThrow(res);
       const items = data.items || [];
       // Also fetch live games
-      const liveRes = await authFetch('/admin/games?status=live&limit=20');
+      const liveRes = await authFetch('/games?status=live&limit=20');
       const liveData = await parseJsonOrThrow(liveRes);
       const liveItems = (liveData.items || []).map((g: GameOption) => ({ ...g, is_live: true }));
       setGames([...liveItems, ...items]);
