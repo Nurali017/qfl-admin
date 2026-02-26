@@ -44,6 +44,13 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-admin-muted">Live-управление матчами и событиями.</p>
         </Link>
 
+        {user?.role === 'superadmin' || user?.role === 'editor' || user?.role === 'operator' ? (
+          <Link href="/operations/cup" className="card transition hover:border-admin-accent">
+            <h3 className="font-[var(--font-heading)] text-lg">Cup Ops</h3>
+            <p className="mt-2 text-sm text-admin-muted">Создание сезона Кубка и live-жеребьёвка.</p>
+          </Link>
+        ) : null}
+
         {user?.role === 'superadmin' ? (
           <Link href="/users" className="card transition hover:border-admin-accent">
             <h3 className="font-[var(--font-heading)] text-lg">Users</h3>

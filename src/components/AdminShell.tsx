@@ -18,6 +18,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/content/pages', label: 'Pages', roles: ['superadmin', 'editor'] },
   { href: '/media/files', label: 'Files', roles: ['superadmin', 'editor'] },
   { href: '/players', label: 'Players', roles: ['superadmin', 'editor'] },
+  { href: '/games', label: 'Games', roles: ['superadmin', 'editor', 'operator'] },
+  { href: '/operations/cup', label: 'Cup Ops', roles: ['superadmin', 'editor', 'operator'] },
   { href: '/operations/sync', label: 'Sync Ops', roles: ['superadmin', 'operator'] },
   { href: '/operations/live', label: 'Live Ops', roles: ['superadmin', 'operator'] },
   { href: '/users', label: 'Users', roles: ['superadmin'] },

@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  basePath: '/admin',
+  output: 'standalone',
   async rewrites() {
     return [
       {
         source: '/admin-api/:path*',
-        destination: 'http://localhost:8000/api/v1/admin/:path*',
+        destination: `${process.env.API_REWRITE_DESTINATION || 'http://localhost:8000'}/api/v1/admin/:path*`,
       },
     ];
   },
