@@ -60,8 +60,8 @@ jobs:
             docker compose -f docker-compose.prod.yml up -d --no-deps admin
 
             echo "=== Updating nginx config ==="
-            docker cp nginx/conf.d/default.conf onesport-admin:/etc/nginx/qfl/kffleague.kz.conf
-            docker exec onesport-admin nginx -s reload || true
+            cp nginx/conf.d/default.conf /home/debian/1sport/qfl-nginx/kffleague.kz.conf
+            docker exec onesport-admin nginx -t && docker exec onesport-admin nginx -s reload
 
             echo "=== Cleanup ==="
             docker image prune -f &
