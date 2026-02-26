@@ -13,10 +13,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time env vars (NEXT_PUBLIC_* are baked into the JS bundle)
+# Build-time env vars (baked into the standalone build)
 ARG NEXT_PUBLIC_ADMIN_API_BASE_URL=/admin/admin-api
+ARG API_REWRITE_DESTINATION=http://qfl-backend:8000
 
 ENV NEXT_PUBLIC_ADMIN_API_BASE_URL=$NEXT_PUBLIC_ADMIN_API_BASE_URL
+ENV API_REWRITE_DESTINATION=$API_REWRITE_DESTINATION
 ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build

@@ -36,6 +36,7 @@ jobs:
             ghcr.io/nurali017/qfl-admin:${{ github.sha }}
           build-args: |
             NEXT_PUBLIC_ADMIN_API_BASE_URL=/admin/admin-api
+            API_REWRITE_DESTINATION=http://qfl-backend:8000
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
