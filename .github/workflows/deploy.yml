@@ -50,11 +50,18 @@ jobs:
             set -e
             cd /home/debian/qfl
 
+            echo "=== Updating docker-compose ==="
+            git fetch origin main && git reset --hard origin/main
+
             echo "=== Pulling admin image ==="
             docker pull ghcr.io/nurali017/qfl-admin:latest
 
             echo "=== Restarting admin ==="
             docker compose -f docker-compose.prod.yml up -d --no-deps admin
+
+            echo "=== Updating nginx config ==="
+            docker cp nginx/conf.d/default.conf onesport-admin:/etc/nginx/qfl/kffleague.kz.conf
+            docker exec onesport-admin nginx -s reload || true
 
             echo "=== Cleanup ==="
             docker image prune -f &
