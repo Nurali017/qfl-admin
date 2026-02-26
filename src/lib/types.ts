@@ -1,5 +1,52 @@
 export type AdminRole = 'superadmin' | 'editor' | 'operator';
 
+// ── Contracts ────────────────────────────────────────────────────────────────
+export interface AdminContractListItem {
+  id: number;
+  player_id: number;
+  player_last_name: string | null;
+  player_first_name: string | null;
+  player_sota_id: string | null;
+  team_id: number;
+  team_name: string | null;
+  season_id: number;
+  season_name: string | null;
+  role: number | null;        // 1=Игрок, 2=Тренер, 3=Сотрудник, 4=Администрация
+  amplua: number | null;      // 1=Вратарь, 2=Защитник, 3=Полузащитник, 4=Нападающий
+  number: number | null;
+  position_ru: string | null;
+  position_kz: string | null;
+  position_en: string | null;
+  photo_url: string | null;
+  is_active: boolean;
+  is_hidden: boolean;
+}
+
+export interface AdminContractMetaPlayer {
+  id: number;
+  last_name: string | null;
+  first_name: string | null;
+  sota_id: string | null;
+}
+
+export interface AdminContractMetaSeason {
+  id: number;
+  name: string;
+  championship_name: string | null;
+}
+
+export interface AdminContractMeta {
+  players: AdminContractMetaPlayer[];
+  teams: AdminMetaTeam[];
+  seasons: AdminContractMetaSeason[];
+}
+
+export interface AdminContractsListResponse {
+  items: AdminContractListItem[];
+  total: number;
+}
+// ────────────────────────────────────────────────────────────────────────────
+
 export interface AdminUser {
   id: number;
   email: string;
