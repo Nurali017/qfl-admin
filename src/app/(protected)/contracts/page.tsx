@@ -398,6 +398,18 @@ export default function ContractsPage() {
 
   const executeBulkCopy = async () => {
     if (!copySource || !copyTarget || !copyTeam) return;
+    const includedPlayers = copyPreview.filter((c) => !copyExcluded.has(c.id) && c.role === 1);
+    const missingFields = includedPlayers.filter((c) => {
+      const ov = copyOverrides[c.id] ?? {};
+      const effectiveNumber = ov.number !== undefined ? ov.number : (c.number?.toString() ?? '');
+      const effectiveAmplua = ov.amplua !== undefined ? ov.amplua : (c.amplua?.toString() ?? '');
+      return !effectiveNumber || !effectiveAmplua;
+    });
+    if (missingFields.length > 0) {
+      const names = missingFields.map((c) => [c.player_last_name, c.player_first_name].filter(Boolean).join(' ') || `#${c.player_id}`).join(', ');
+      setError(`У следующих игроков не заполнены номер или амплуа: ${names}`);
+      return;
+    }
     const count = copyPreview.filter((c) => !copyExcluded.has(c.id)).length;
     if (!window.confirm(`Будет создано ${count} контрактов. Продолжить?`)) return;
     setCopyLoading(true);
@@ -571,6 +583,10 @@ export default function ContractsPage() {
 
   const handleAddExistingPlayer = async () => {
     if (!selectedPlayer || !copyTarget || !copyTeam) return;
+    if (addRole === '1' && (!addAmplua || !addNumber)) {
+      setError('Для игрока обязательны амплуа и номер');
+      return;
+    }
     setAddSaving(true);
     setError(null);
     setSuccess(null);
@@ -598,6 +614,10 @@ export default function ContractsPage() {
     if (!copyTarget || !copyTeam) return;
     if (!newPlayerForm.last_name.trim()) {
       setError('Фамилия обязательна');
+      return;
+    }
+    if (addRole === '1' && (!addAmplua || !addNumber)) {
+      setError('Для игрока обязательны амплуа и номер');
       return;
     }
     setAddSaving(true);
@@ -943,14 +963,14 @@ export default function ContractsPage() {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className={`btn ${addMode === 'search' ? 'btn-primary' : 'btn-muted'}`}
+                    className="btn btn-primary"
                     onClick={() => { setAddMode(addMode === 'search' ? null : 'search'); setSelectedPlayer(null); }}
                   >
                     Поиск существующего
                   </button>
                   <button
                     type="button"
-                    className={`btn ${addMode === 'create' ? 'btn-primary' : 'btn-muted'}`}
+                    className="btn btn-primary"
                     onClick={() => { setAddMode(addMode === 'create' ? null : 'create'); void loadPlayersMeta(); }}
                   >
                     Создать нового
@@ -1021,13 +1041,13 @@ export default function ContractsPage() {
                         {addRole === '1' && (
                           <>
                             <select className="field" value={addAmplua} onChange={(e) => setAddAmplua(e.target.value)}>
-                              <option value="">— Амплуа —</option>
+                              <option value="">— Амплуа * —</option>
                               <option value="1">Вратарь</option>
                               <option value="2">Защитник</option>
                               <option value="3">Полузащитник</option>
                               <option value="4">Нападающий</option>
                             </select>
-                            <input className="field" type="number" min={0} placeholder="Номер" value={addNumber} onChange={(e) => setAddNumber(e.target.value)} />
+                            <input className="field" type="number" min={0} placeholder="Номер *" value={addNumber} onChange={(e) => setAddNumber(e.target.value)} />
                           </>
                         )}
                         {['2', '3', '4'].includes(addRole) && (
@@ -1040,7 +1060,7 @@ export default function ContractsPage() {
                       <button
                         type="button"
                         className="btn btn-primary"
-                        disabled={addSaving || !copyTarget || !copyTeam}
+                        disabled={addSaving || !copyTarget || !copyTeam || (addRole === '1' && (!addAmplua || !addNumber))}
                         onClick={() => void handleAddExistingPlayer()}
                       >
                         {addSaving ? 'Сохраняем...' : 'Добавить контракт'}
@@ -1108,13 +1128,13 @@ export default function ContractsPage() {
                     {addRole === '1' && (
                       <>
                         <select className="field" value={addAmplua} onChange={(e) => setAddAmplua(e.target.value)}>
-                          <option value="">— Амплуа —</option>
+                          <option value="">— Амплуа * —</option>
                           <option value="1">Вратарь</option>
                           <option value="2">Защитник</option>
                           <option value="3">Полузащитник</option>
                           <option value="4">Нападающий</option>
                         </select>
-                        <input className="field" type="number" min={0} placeholder="Номер" value={addNumber} onChange={(e) => setAddNumber(e.target.value)} />
+                        <input className="field" type="number" min={0} placeholder="Номер *" value={addNumber} onChange={(e) => setAddNumber(e.target.value)} />
                       </>
                     )}
                     {['2', '3', '4'].includes(addRole) && (
@@ -1127,7 +1147,7 @@ export default function ContractsPage() {
                   <button
                     type="button"
                     className="btn btn-primary"
-                    disabled={addSaving || !copyTarget || !copyTeam || !newPlayerForm.last_name.trim()}
+                    disabled={addSaving || !copyTarget || !copyTeam || !newPlayerForm.last_name.trim() || (addRole === '1' && (!addAmplua || !addNumber))}
                     onClick={() => void handleCreateAndAddPlayer()}
                   >
                     {addSaving ? 'Создаём...' : 'Создать и добавить'}
@@ -1146,7 +1166,19 @@ export default function ContractsPage() {
                   <table className="w-full min-w-[700px] border-separate border-spacing-y-1 text-sm">
                     <thead>
                       <tr className="text-left text-xs uppercase tracking-[0.12em] text-admin-muted">
-                        <th className="px-2 py-1 w-8">✓</th>
+                        <th className="px-2 py-1 w-8">
+                          <input
+                            type="checkbox"
+                            checked={copyExcluded.size === 0}
+                            onChange={() => {
+                              if (copyExcluded.size === 0) {
+                                setCopyExcluded(new Set(copyPreview.map((c) => c.id)));
+                              } else {
+                                setCopyExcluded(new Set());
+                              }
+                            }}
+                          />
+                        </th>
                         <th className="px-2 py-1">Персона</th>
                         <th className="px-2 py-1">Роль</th>
                         <th className="px-2 py-1 w-20">№</th>
@@ -1160,6 +1192,10 @@ export default function ContractsPage() {
                         const excluded = copyExcluded.has(c.id);
                         const ov = copyOverrides[c.id] ?? {};
                         const isPlayer = c.role === 1;
+                        const effectiveNumber = ov.number !== undefined ? ov.number : (c.number?.toString() ?? '');
+                        const effectiveAmplua = ov.amplua !== undefined ? ov.amplua : (c.amplua?.toString() ?? '');
+                        const numberMissing = isPlayer && !excluded && !effectiveNumber;
+                        const ampluaMissing = isPlayer && !excluded && !effectiveAmplua;
                         return (
                           <tr key={c.id} className={excluded ? 'bg-[#0E172A] opacity-40' : 'bg-[#0E172A]'}>
                             <td className="px-2 py-1">
@@ -1183,7 +1219,7 @@ export default function ContractsPage() {
                               {isPlayer && (
                                 <input
                                   type="number"
-                                  className="field w-16 text-center"
+                                  className={`field w-16 text-center ${numberMissing ? 'border-red-500' : ''}`}
                                   min={0}
                                   placeholder={c.number?.toString() ?? '—'}
                                   value={ov.number ?? ''}
@@ -1195,7 +1231,7 @@ export default function ContractsPage() {
                             <td className="px-2 py-1">
                               {isPlayer ? (
                                 <select
-                                  className="field w-36"
+                                  className={`field w-36 ${ampluaMissing ? 'border-red-500' : ''}`}
                                   value={ov.amplua ?? (c.amplua?.toString() ?? '')}
                                   onChange={(e) => updateCopyOverride(c.id, 'amplua', e.target.value)}
                                   disabled={excluded}
@@ -1250,19 +1286,33 @@ export default function ContractsPage() {
                   </table>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    disabled={!copyTarget || copyLoading || copyPreview.length === copyExcluded.size}
-                    onClick={() => void executeBulkCopy()}
-                  >
-                    {copyLoading ? 'Выполняем...' : `Перенести ${copyPreview.length - copyExcluded.size} контрактов →`}
-                  </button>
-                  {!copyTarget && (
-                    <span className="text-xs text-admin-muted">Выберите целевой сезон</span>
-                  )}
-                </div>
+                {(() => {
+                  const hasIncompletePlayer = copyPreview.some((c) => {
+                    if (copyExcluded.has(c.id) || c.role !== 1) return false;
+                    const ov = copyOverrides[c.id] ?? {};
+                    const effectiveNumber = ov.number !== undefined ? ov.number : (c.number?.toString() ?? '');
+                    const effectiveAmplua = ov.amplua !== undefined ? ov.amplua : (c.amplua?.toString() ?? '');
+                    return !effectiveNumber || !effectiveAmplua;
+                  });
+                  return (
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={!copyTarget || copyLoading || copyPreview.length === copyExcluded.size || hasIncompletePlayer}
+                        onClick={() => void executeBulkCopy()}
+                      >
+                        {copyLoading ? 'Выполняем...' : `Перенести ${copyPreview.length - copyExcluded.size} контрактов →`}
+                      </button>
+                      {!copyTarget && (
+                        <span className="text-xs text-admin-muted">Выберите целевой сезон</span>
+                      )}
+                      {hasIncompletePlayer && (
+                        <span className="text-xs text-yellow-400">Заполните номер и амплуа у всех игроков</span>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {copyResult && (
                   <div className="rounded border border-emerald-700 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-300">
