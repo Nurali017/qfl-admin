@@ -184,6 +184,7 @@ export default function ContractsPage() {
   const [copyResult, setCopyResult] = useState<AdminContractBulkCopyResponse | null>(null);
   const [copyPhotoUploading, setCopyPhotoUploading] = useState<number | null>(null);
   const [copySourceTeamIds, setCopySourceTeamIds] = useState<Set<number> | null>(null);
+  const [targetExisting, setTargetExisting] = useState<Set<number>>(new Set());
 
   // Add-player states
   const [addMode, setAddMode] = useState<'search' | 'create' | null>(null);
@@ -395,6 +396,37 @@ export default function ContractsPage() {
       setCopySourceTeamIds(null);
     }
   };
+
+  // Fetch existing contracts in target season+team to detect duplicates
+  useEffect(() => {
+    if (!copyTarget || !copyTeam || copyPreview.length === 0) {
+      setTargetExisting(new Set());
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await authFetch(`/contracts?season_id=${copyTarget}&team_id=${copyTeam}&limit=200`);
+        const data = (await parseJsonOrThrow(res)) as AdminContractsListResponse;
+        if (!cancelled) {
+          const playerIds = new Set(data.items.map((c) => c.player_id));
+          setTargetExisting(playerIds);
+          // Auto-exclude duplicates
+          setCopyExcluded((prev) => {
+            const next = new Set(prev);
+            for (const c of copyPreview) {
+              if (playerIds.has(c.player_id)) next.add(c.id);
+            }
+            return next;
+          });
+        }
+      } catch {
+        if (!cancelled) setTargetExisting(new Set());
+      }
+    })();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [copyTarget, copyTeam, copyPreview]);
 
   const executeBulkCopy = async () => {
     if (!copySource || !copyTarget || !copyTeam) return;
@@ -1161,6 +1193,9 @@ export default function ContractsPage() {
               <>
                 <p className="text-sm text-admin-muted">
                   {copyPreview.length} записей в составе · включено: {copyPreview.length - copyExcluded.size}
+                  {targetExisting.size > 0 && copyTarget && (
+                    <> · <span className="text-yellow-400">уже в сезоне: {targetExisting.size}</span></>
+                  )}
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[700px] border-separate border-spacing-y-1 text-sm">
@@ -1206,8 +1241,13 @@ export default function ContractsPage() {
                               />
                             </td>
                             <td className="px-2 py-1">
-                              <div className="font-medium">
+                              <div className="font-medium flex items-center gap-1.5">
                                 {[c.player_last_name, c.player_first_name].filter(Boolean).join(' ') || `#${c.player_id}`}
+                                {targetExisting.has(c.player_id) && (
+                                  <span className="rounded bg-yellow-600/30 px-1.5 py-0.5 text-[10px] font-semibold text-yellow-400 whitespace-nowrap">
+                                    уже в сезоне
+                                  </span>
+                                )}
                               </div>
                             </td>
                             <td className="px-2 py-1">
