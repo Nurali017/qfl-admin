@@ -7,6 +7,7 @@ export interface AdminContractListItem {
   player_last_name: string | null;
   player_first_name: string | null;
   player_sota_id: string | null;
+  player_photo_url: string | null;
   team_id: number;
   team_name: string | null;
   season_id: number;
@@ -44,6 +45,12 @@ export interface AdminContractMeta {
 export interface AdminContractsListResponse {
   items: AdminContractListItem[];
   total: number;
+}
+
+export interface AdminContractBulkCopyResponse {
+  created: number;
+  skipped: number;
+  excluded: number;
 }
 // ────────────────────────────────────────────────────────────────────────────
 
