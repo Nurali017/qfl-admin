@@ -21,6 +21,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/contracts', label: 'Contracts', roles: ['superadmin', 'editor'] },
   { href: '/coaches', label: 'Coaches', roles: ['superadmin', 'editor'] },
   { href: '/games', label: 'Games', roles: ['superadmin', 'editor', 'operator'] },
+  { href: '/broadcasters', label: 'Broadcasters', roles: ['superadmin', 'editor'] },
   { href: '/operations/cup', label: 'Cup Ops', roles: ['superadmin', 'editor', 'operator'] },
   { href: '/operations/sync', label: 'Sync Ops', roles: ['superadmin', 'operator'] },
   { href: '/operations/live', label: 'Live Ops', roles: ['superadmin', 'operator'] },

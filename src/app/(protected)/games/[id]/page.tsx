@@ -67,6 +67,16 @@ type RefereeItem = {
 
 type RefereeOption = { id: number; name: string };
 
+type BroadcasterItem = {
+  id: number;
+  broadcaster_id: number;
+  broadcaster_name: string;
+  logo_url: string | null;
+  sort_order: number;
+};
+
+type BroadcasterOption = { id: number; name: string; logo_url: string | null };
+
 const STATUS_OPTIONS = ['created', 'live', 'finished', 'postponed', 'cancelled', 'technical_defeat'];
 
 const REFEREE_ROLES = [
@@ -170,6 +180,15 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
   const [addRefMsg, setAddRefMsg] = useState('');
   const [refereeOptions, setRefereeOptions] = useState<RefereeOption[]>([]);
 
+  // Broadcasters state
+  const [broadcasters, setBroadcasters] = useState<BroadcasterItem[]>([]);
+  const [broadcastersLoading, setBroadcastersLoading] = useState(false);
+  const [broadcastersError, setBroadcastersError] = useState<string | null>(null);
+  const [broadcastersBusy, setBroadcastersBusy] = useState(false);
+  const [addBcBroadcaster, setAddBcBroadcaster] = useState('');
+  const [addBcMsg, setAddBcMsg] = useState('');
+  const [broadcasterOptions, setBroadcasterOptions] = useState<BroadcasterOption[]>([]);
+
   // Events state
   const [events, setEvents] = useState<EventItem[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -257,12 +276,28 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
     }
   }, [authFetch, gameId]);
 
+  // Fetch broadcasters
+  const fetchBroadcasters = useCallback(async () => {
+    setBroadcastersLoading(true);
+    setBroadcastersError(null);
+    try {
+      const res = await authFetch(`/games/${gameId}/broadcasters`);
+      const data: BroadcasterItem[] = await parseJsonOrThrow(res);
+      setBroadcasters(data);
+    } catch (err) {
+      setBroadcastersError(err instanceof Error ? err.message : 'Failed to load broadcasters');
+    } finally {
+      setBroadcastersLoading(false);
+    }
+  }, [authFetch, gameId]);
+
   useEffect(() => {
     void fetchGame();
     void fetchLineup();
     void fetchReferees();
+    void fetchBroadcasters();
     void fetchEvents();
-  }, [fetchGame, fetchLineup, fetchReferees, fetchEvents]);
+  }, [fetchGame, fetchLineup, fetchReferees, fetchBroadcasters, fetchEvents]);
 
   // Load referee options
   useEffect(() => {
@@ -270,6 +305,20 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
       try {
         const data = await res.json();
         setRefereeOptions(data);
+      } catch {}
+    });
+  }, [authFetch]);
+
+  // Load broadcaster options
+  useEffect(() => {
+    void authFetch('/broadcasters').then(async (res) => {
+      try {
+        const data = await res.json();
+        setBroadcasterOptions((data.items ?? []).map((b: { id: number; name: string; logo_url?: string | null }) => ({
+          id: b.id,
+          name: b.name,
+          logo_url: b.logo_url ?? null,
+        })));
       } catch {}
     });
   }, [authFetch]);
@@ -451,6 +500,42 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
       setAddRefMsg(err instanceof Error ? err.message : 'Failed to add');
     } finally {
       setRefereesBusy(false);
+    }
+  };
+
+  // Delete broadcaster
+  const deleteBroadcaster = async (entryId: number) => {
+    setBroadcastersBusy(true);
+    try {
+      const res = await authFetch(`/games/${gameId}/broadcasters/${entryId}`, { method: 'DELETE' });
+      await parseJsonOrThrow(res);
+      void fetchBroadcasters();
+    } catch (err) {
+      setBroadcastersError(err instanceof Error ? err.message : 'Delete failed');
+    } finally {
+      setBroadcastersBusy(false);
+    }
+  };
+
+  // Add broadcaster
+  const addBroadcaster = async () => {
+    if (!addBcBroadcaster) return;
+    setBroadcastersBusy(true);
+    setAddBcMsg('');
+    try {
+      const res = await authFetch(`/games/${gameId}/broadcasters`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ broadcaster_id: Number(addBcBroadcaster) }),
+      });
+      await parseJsonOrThrow(res);
+      setAddBcMsg('Added!');
+      setAddBcBroadcaster('');
+      void fetchBroadcasters();
+    } catch (err) {
+      setAddBcMsg(err instanceof Error ? err.message : 'Failed to add');
+    } finally {
+      setBroadcastersBusy(false);
     }
   };
 
@@ -962,7 +1047,66 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
-      {/* Section 4: Events */}
+      {/* Section 4: Broadcasters */}
+      <section className="card">
+        <h2 className="font-[var(--font-heading)] text-lg mb-3">Broadcast</h2>
+
+        {broadcastersError && <div className="mb-2 text-sm text-red-300">{broadcastersError}</div>}
+
+        {broadcastersLoading ? (
+          <div className="text-sm text-admin-muted">Loading broadcasters...</div>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {broadcasters.length === 0 ? (
+              <p className="text-sm text-admin-muted">No broadcasters assigned.</p>
+            ) : (
+              broadcasters.map((b) => (
+                <div key={b.id} className="flex items-center gap-2 rounded border border-admin-line px-3 py-2">
+                  {b.logo_url && (
+                    <img src={b.logo_url} alt={b.broadcaster_name} className="h-6 w-auto object-contain" />
+                  )}
+                  <span className="text-sm">{b.broadcaster_name}</span>
+                  <button
+                    className="rounded bg-red-900/40 px-2 py-0.5 text-xs text-red-300 hover:bg-red-800/60"
+                    disabled={broadcastersBusy}
+                    onClick={() => void deleteBroadcaster(b.id)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Add broadcaster form */}
+        <div className="mt-4 border-t border-admin-line pt-4">
+          <h3 className="mb-3 text-sm font-medium text-admin-muted">Add Broadcaster</h3>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <label className="mb-1 block text-xs text-admin-muted">Channel</label>
+              <Combobox
+                className="w-56"
+                options={[
+                  { value: '', label: 'Select channel' },
+                  ...broadcasterOptions.map((b) => ({ value: String(b.id), label: b.name })),
+                ]}
+                value={addBcBroadcaster}
+                onChange={setAddBcBroadcaster}
+                placeholder="Select channel"
+              />
+            </div>
+            <div className="flex items-end gap-2">
+              <button className="btn" onClick={() => void addBroadcaster()} disabled={broadcastersBusy || !addBcBroadcaster}>
+                {broadcastersBusy ? '...' : 'Add'}
+              </button>
+              {addBcMsg && <span className="text-xs text-admin-muted">{addBcMsg}</span>}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Section 5: Events */}
       <section className="card">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-[var(--font-heading)] text-lg">Events</h2>
