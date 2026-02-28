@@ -25,6 +25,7 @@ type GameItem = {
   home_formation: string | null;
   away_formation: string | null;
   sota_id: string | null;
+  half2_started_at: string | null;
 };
 
 type GamesResponse = { items: GameItem[]; total: number };
@@ -206,13 +207,25 @@ export default function GamesPage() {
                         {busy === `/ops/live/start/${g.id}` ? '...' : 'Start'}
                       </button>
                     ) : (
-                      <button
-                        className="rounded bg-red-700/70 px-2 py-0.5 text-xs text-white hover:bg-red-600"
-                        disabled={busy !== null}
-                        onClick={() => void runOp(`/ops/live/stop/${g.id}`)}
-                      >
-                        {busy === `/ops/live/stop/${g.id}` ? '...' : 'Stop'}
-                      </button>
+                      <>
+                        <button
+                          className="rounded bg-red-700/70 px-2 py-0.5 text-xs text-white hover:bg-red-600"
+                          disabled={busy !== null}
+                          onClick={() => void runOp(`/ops/live/stop/${g.id}`)}
+                        >
+                          {busy === `/ops/live/stop/${g.id}` ? '...' : 'Stop'}
+                        </button>
+                        {!g.half2_started_at && (
+                          <button
+                            className="rounded bg-orange-700/70 px-2 py-0.5 text-xs text-white hover:bg-orange-600"
+                            disabled={busy !== null}
+                            onClick={() => void runOp(`/ops/live/half2/${g.id}`)}
+                            title="Start 2nd half"
+                          >
+                            {busy === `/ops/live/half2/${g.id}` ? '...' : '2т'}
+                          </button>
+                        )}
+                      </>
                     )}
                     <button
                       className="rounded bg-admin-line px-2 py-0.5 text-xs text-admin-muted hover:bg-[#2a3a5c]"

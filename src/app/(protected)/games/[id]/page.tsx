@@ -25,6 +25,7 @@ type GameDetail = {
   sync_disabled: boolean;
   has_lineup: boolean;
   has_stats: boolean;
+  sota_id: string | null;
   video_url: string | null;
   youtube_live_url: string | null;
 };
@@ -146,6 +147,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
   const [editStatus, setEditStatus] = useState('');
   const [editFeatured, setEditFeatured] = useState(false);
   const [editSyncDisabled, setEditSyncDisabled] = useState(false);
+  const [editSotaId, setEditSotaId] = useState('');
   const [editVideoUrl, setEditVideoUrl] = useState('');
   const [editYoutubeLiveUrl, setEditYoutubeLiveUrl] = useState('');
   const [saveLoading, setSaveLoading] = useState(false);
@@ -222,6 +224,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
       setEditStatus(data.status);
       setEditFeatured(data.is_featured);
       setEditSyncDisabled(data.sync_disabled ?? false);
+      setEditSotaId(data.sota_id ?? '');
       setEditVideoUrl(data.video_url ?? '');
       setEditYoutubeLiveUrl(data.youtube_live_url ?? '');
     } catch (err) {
@@ -363,6 +366,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
         status: editStatus,
         is_featured: editFeatured,
         sync_disabled: editSyncDisabled,
+        sota_id: editSotaId || null,
         video_url: editVideoUrl || null,
         youtube_live_url: editYoutubeLiveUrl || null,
       };
@@ -767,6 +771,15 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
           <div>
             <label className="mb-1 block text-xs text-admin-muted">Away Penalty</label>
             <input type="number" className="field w-20" value={editAwayPenalty} onChange={(e) => setEditAwayPenalty(e.target.value)} placeholder="—" />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3">
+          <h3 className="text-xs font-semibold uppercase text-admin-muted tracking-wider">SOTA</h3>
+          <div>
+            <label className="mb-1 block text-xs text-admin-muted">SOTA ID</label>
+            <input type="text" className="field w-full font-mono text-xs" value={editSotaId}
+              onChange={(e) => setEditSotaId(e.target.value)} placeholder="UUID or empty" />
           </div>
         </div>
 

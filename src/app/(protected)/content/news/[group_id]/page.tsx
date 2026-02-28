@@ -12,7 +12,7 @@ import { parseJsonOrThrow } from '@/lib/http';
 const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
 type TeamOption = { id: number; name: string };
-type GameOption = { id: number; date: string; home_team: { name: string } | null; away_team: { name: string } | null };
+type GameOption = { id: number; date: string; home_team_name: string | null; away_team_name: string | null };
 
 type NewsArticleType = 'NEWS' | 'ANALYTICS' | null;
 
@@ -458,7 +458,7 @@ export default function NewsEditPage() {
             <div className="space-y-1 max-h-40 overflow-y-auto">
               {gameResults.map((game) => {
                 const alreadyLinked = linkedGameIds.includes(game.id);
-                const label = `${game.home_team?.name ?? '?'} vs ${game.away_team?.name ?? '?'} (${game.date})`;
+                const label = `${game.home_team_name ?? '?'} vs ${game.away_team_name ?? '?'} (${game.date})`;
                 return (
                   <div key={game.id} className="flex items-center justify-between text-sm py-1 border-b border-admin-border">
                     <span className={alreadyLinked ? 'text-white' : 'text-admin-muted'}>{label}</span>
@@ -483,7 +483,7 @@ export default function NewsEditPage() {
               {linkedGameIds.map((id) => {
                 const game = gameResults.find((g) => g.id === id);
                 const label = game
-                  ? `${game.home_team?.name ?? '?'} vs ${game.away_team?.name ?? '?'} (${game.date})`
+                  ? `${game.home_team_name ?? '?'} vs ${game.away_team_name ?? '?'} (${game.date})`
                   : `Game #${id}`;
                 return (
                   <span key={id} className="inline-flex items-center gap-1 bg-admin-card border border-admin-border rounded px-2 py-0.5 text-xs text-white">
