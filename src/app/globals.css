@@ -57,3 +57,24 @@ button {
 .btn-muted {
   @apply bg-[#111b30] text-admin-text hover:bg-[#1a2844];
 }
+
+/* TinyMCE dark theme overrides */
+.tox.tox-tinymce {
+  border-color: rgba(148, 163, 184, 0.12) !important;
+  border-radius: 0.5rem !important;
+}
+
+.tox .tox-toolbar__primary,
+.tox .tox-toolbar__overflow {
+  background: #111b30 !important;
+}
+
+.tox .tox-statusbar {
+  background: #111b30 !important;
+  border-top-color: rgba(148, 163, 184, 0.12) !important;
+  color: #94a3b8 !important;
+}
+
+.tox .tox-edit-area__iframe {
+  background: #0E172A !important;
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 
 import { useAuth } from '@/context/AuthContext';
 import { parseJsonOrThrow } from '@/lib/http';
@@ -28,6 +29,8 @@ type GameItem = {
 
 type GamesResponse = { items: GameItem[]; total: number };
 
+type SeasonItem = { id: number; name: string };
+
 const STATUS_OPTIONS = [
   { value: '', label: 'All' },
   { value: 'upcoming', label: 'Upcoming' },
@@ -43,6 +46,7 @@ export default function GamesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [seasons, setSeasons] = useState<SeasonItem[]>([]);
   const [seasonId, setSeasonId] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
@@ -76,6 +80,15 @@ export default function GamesPage() {
   useEffect(() => {
     void fetchGames();
   }, [fetchGames]);
+
+  useEffect(() => {
+    void authFetch('/seasons?limit=100').then(async (res) => {
+      try {
+        const data = await res.json();
+        setSeasons(data.items ?? []);
+      } catch {}
+    });
+  }, [authFetch]);
 
   const runOp = async (path: string, method = 'POST') => {
     setBusy(path);
@@ -112,13 +125,17 @@ export default function GamesPage() {
       <section className="card">
         <div className="flex flex-wrap items-end gap-3">
           <div>
-            <label className="mb-1 block text-xs text-admin-muted">Season ID</label>
-            <input
-              className="field w-28"
+            <label className="mb-1 block text-xs text-admin-muted">Season</label>
+            <select
+              className="field w-44"
               value={seasonId}
               onChange={(e) => { setSeasonId(e.target.value); setPage(0); }}
-              placeholder="All"
-            />
+            >
+              <option value="">All seasons</option>
+              {seasons.map((s) => (
+                <option key={s.id} value={String(s.id)}>{s.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="mb-1 block text-xs text-admin-muted">Status</label>
@@ -153,6 +170,7 @@ export default function GamesPage() {
               <th className="px-2 py-2">Score</th>
               <th className="px-2 py-2">Status</th>
               <th className="px-2 py-2">Actions</th>
+              <th className="px-2 py-2">Edit</th>
             </tr>
           </thead>
           <tbody>
@@ -222,11 +240,19 @@ export default function GamesPage() {
                     </button>
                   </div>
                 </td>
+                <td className="px-2 py-2">
+                  <Link
+                    href={`/games/${g.id}`}
+                    className="rounded bg-admin-line px-2 py-0.5 text-xs text-admin-muted hover:bg-[#2a3a5c] hover:text-white"
+                  >
+                    Edit →
+                  </Link>
+                </td>
               </tr>
             ))}
             {games.length === 0 && !loading && (
               <tr>
-                <td colSpan={8} className="px-2 py-6 text-center text-admin-muted">No games found.</td>
+                <td colSpan={9} className="px-2 py-6 text-center text-admin-muted">No games found.</td>
               </tr>
             )}
           </tbody>

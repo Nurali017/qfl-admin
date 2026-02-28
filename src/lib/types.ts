@@ -54,6 +54,51 @@ export interface AdminContractBulkCopyResponse {
 }
 // ────────────────────────────────────────────────────────────────────────────
 
+// ── Coaches ──────────────────────────────────────────────────────────────────
+export type CoachRoleValue = 'head_coach' | 'assistant' | 'goalkeeper_coach' | 'fitness_coach' | 'other';
+
+export interface AdminCoachAssignmentListItem {
+  id: number;
+  coach_id: number;
+  coach_first_name: string | null;
+  coach_last_name: string | null;
+  coach_photo_url: string | null;
+  team_id: number;
+  team_name: string | null;
+  season_id: number | null;
+  season_name: string | null;
+  role: CoachRoleValue;
+  is_active: boolean;
+  start_date: string | null;
+  end_date: string | null;
+}
+
+export interface AdminCoachMetaCoach {
+  id: number;
+  last_name: string | null;
+  first_name: string | null;
+  photo_url: string | null;
+}
+
+export interface AdminCoachMeta {
+  coaches: AdminCoachMetaCoach[];
+  teams: AdminMetaTeam[];
+  seasons: AdminContractMetaSeason[];
+  countries: AdminMetaCountry[];
+}
+
+export interface AdminCoachAssignmentsListResponse {
+  items: AdminCoachAssignmentListItem[];
+  total: number;
+}
+
+export interface AdminCoachBulkCopyResponse {
+  created: number;
+  skipped: number;
+  excluded: number;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface AdminUser {
   id: number;
   email: string;
